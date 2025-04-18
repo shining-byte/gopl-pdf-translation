@@ -58,8 +58,26 @@ $ GOMAXPROCS=2 go run hacker-cliché.go
 4. 使用 runtime.NumCPU() 获取机器 CPU 核心数。
 
 示例代码框架：
-go func compute() {     // 计算密集型任务 }  func main() {     for p := 1; p <= runtime.NumCPU(); p++ {         runtime.GOMAXPROCS(p)         start := time.Now()         var wg sync.WaitGroup         for i := 0; i < 100; i++ {             wg.Add(1)             go func() { compute(); wg.Done() }()         }         wg.Wait()         fmt.Printf("GOMAXPROCS=%d: %v\n", p, time.Since(start))     } } 
-
+```go 
+func compute() {     // 计算密集型任务 
+}  
+func main() {     
+    for p := 1; p <= runtime.NumCPU(); p++ {         
+        runtime.GOMAXPROCS(p)         
+        start := time.Now()         
+        var wg sync.WaitGroup         
+        for i := 0; i < 100; i++ {             
+            wg.Add(1)             
+            go func() { 
+                compute(); 
+                wg.Done() 
+                }()         
+        }         
+        wg.Wait()         
+        fmt.Printf("GOMAXPROCS=%d: %v\n", p, time.Since(start))     
+    } 
+} 
+```
 #### 9.8.4 协程无身份标识
 大多数支持多线程的系统或语言中，线程具有明确的身份标识（如整数 ID 或指针），这便于实现线程本地存储（TLS）——一种以线程 ID 为键的全局存储，使各线程能独立存取数据。
 
@@ -67,8 +85,12 @@ Go 的设计选择：
 - 协程无暴露给程序员的身份标识：刻意避免 TLS 的滥用模式。
 - 问题背景：在依赖 TLS 的 Web 服务器中，常见通过线程标识隐式传递 HTTP 请求上下文，导致函数行为不仅依赖参数，还隐式依赖线程身份。若线程池动态调整（如某些工作线程被复用），可能引发难以调试的异常。
 - Go 的哲学：通过显式参数传递所有影响行为的输入，使代码更清晰且易于并发拆分。例如：
-go   // 显式传递请求上下文，而非依赖协程身份   func handleRequest(ctx Context, req *Request) {       // 逻辑清晰，可安全跨协程调度   }   
-
+```go   
+// 显式传递请求上下文，而非依赖协程身份   
+func handleRequest(ctx Context, req *Request) {       
+    // 逻辑清晰，可安全跨协程调度   
+    }   
+```
 #### 后续内容预告
 至此，您已掌握 Go 语言的全部核心特性。接下来两章将探讨大型工程实践：
 1. 项目结构：如何将项目组织为包集合。
